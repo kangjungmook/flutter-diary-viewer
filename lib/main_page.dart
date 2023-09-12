@@ -68,8 +68,8 @@ class _MainState extends State<Main> {
                       title: Text(data['title']),
                       subtitle: Text(
                         data['contents'],
-                        trailing: const Icon(Icons.delete),
                       ),
+                      trailing: const Icon(Icons.delete),
                     );
                   },
                   separatorBuilder: (context, index) => const Divider(),
