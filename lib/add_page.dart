@@ -80,13 +80,12 @@ class _AddPageState extends State<AddPage> {
                 ),
               ),
               ElevatedButton(
-                onPressed: () {
-                  var title = contollers[0].text;
-                  var result = fileSave();
+                onPressed: () async {
+                  var result = await fileSave();
                   if (result == true) {
                     Navigator.pop(context, 'OK');
                   } else {
-                    print('저장실패');
+                    print('error');
                   }
                 },
                 child: const Text('저장'),

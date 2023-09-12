@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ class Main extends StatefulWidget {
 class _MainState extends State<Main> {
   Directory? directory;
   String filePath = '';
+  dynamic myList = const Text('준비');
+
   @override
   void initState() async {
     super.initState();
@@ -47,10 +50,57 @@ class _MainState extends State<Main> {
     }
   }
 
+  Future<void> showList() async {
+    try {
+      var file = File(filePath);
+      if (file.existsSync()) {
+        setState(() {
+          myList = FutureBuilder(
+            future: file.readAsString(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                var d = snapshot.data;
+                var dataList = jsonDecode(d!) as List<dynamic>;
+                return ListView.separated(
+                  itemBuilder: (context, index) {
+                    var data = dataList[index] as Map<String, dynamic>;
+                    return ListTile(
+                      title: Text(data['title']),
+                      subtitle: Text(
+                        data['contents'],
+                        trailing: const Icon(Icons.delete),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemCount: dataList.length,
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          );
+        });
+      }
+    } catch (e) {
+      print('error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Text('hello'),
+      body: Column(
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              showList();
+            },
+            child: const Text('조회'),
+          ),
+          Expanded(child: myList),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           var result = await Navigator.push(
@@ -59,7 +109,9 @@ class _MainState extends State<Main> {
               builder: (context) => AddPage(filePath: filePath),
             ),
           );
-          print(result);
+          if (result == 'ok') {
+            showList();
+          }
         },
         child: const Icon(Icons.apple),
       ),
