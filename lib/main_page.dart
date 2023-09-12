@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_diary/add_page.dart';
+import 'package:flutter_diary/add_page.dart';
 import 'package:path_provider/path_provider.dart';
 
 class MainPage extends StatefulWidget {
@@ -32,20 +32,21 @@ class Main extends StatefulWidget {
 
 class _MainState extends State<Main> {
   Directory? directory;
+  String fileName = 'diary.json';
   String filePath = '';
   dynamic myList = const Text('준비');
 
   @override
-  void initState() async {
+  void initState() {
+    // TODO: implement initState
     super.initState();
-    getPath();
+    getPath().then((value) => {showList()});
   }
 
   Future<void> getPath() async {
-    directory = await getApplicationSupportDirectory();
+    directory = await getApplicationSupportDirectory(); // 모든 플랫폼에서 사용 가능하기 때문에
     if (directory != null) {
-      var fileName = 'diary.json';
-      filePath = '${directory!.path}/$fileName';
+      filePath = '${directory!.path}/$fileName'; // 경로/경로/diary.json
       print(filePath);
     }
   }
@@ -59,16 +60,14 @@ class _MainState extends State<Main> {
             future: file.readAsString(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                var d = snapshot.data;
+                var d = snapshot.data; // String - [{'title' : 'asd'}....]
                 var dataList = jsonDecode(d!) as List<dynamic>;
                 return ListView.separated(
                   itemBuilder: (context, index) {
                     var data = dataList[index] as Map<String, dynamic>;
                     return ListTile(
                       title: Text(data['title']),
-                      subtitle: Text(
-                        data['contents'],
-                      ),
+                      subtitle: Text(data['contents']),
                       trailing: const Icon(Icons.delete),
                     );
                   },
@@ -83,37 +82,44 @@ class _MainState extends State<Main> {
         });
       }
     } catch (e) {
-      print('error');
+      print(e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              showList();
-            },
-            child: const Text('조회'),
-          ),
-          Expanded(child: myList),
-        ],
+      body: Center(
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 60,
+            ),
+            ElevatedButton(
+              onPressed: () {
+                showList();
+              },
+              child: const Text('조회'),
+            ),
+            Expanded(
+              child: myList,
+            )
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           var result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddPage(filePath: filePath),
+              builder: (context) => AddPage(
+                filePath: filePath,
+              ),
             ),
           );
-          if (result == 'ok') {
-            showList();
-          }
+          if (result == 'ok') {}
         },
-        child: const Icon(Icons.apple),
+        child: const Icon(Icons.pest_control_outlined),
       ),
     );
   }
