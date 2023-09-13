@@ -12,8 +12,6 @@ class AddPage extends StatefulWidget {
 }
 
 class _AddPageState extends State<AddPage> {
-  // var controller1 = TextEditingController();
-  // var controller2 = TextEditingController();
   String filePath = '';
   List<TextEditingController> controllers = [
     TextEditingController(),
@@ -22,7 +20,6 @@ class _AddPageState extends State<AddPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     filePath = widget.filePath;
   }
@@ -36,12 +33,10 @@ class _AddPageState extends State<AddPage> {
         'contents': controllers[1].text,
       };
 
-      // 기존에 파일이 있는 경우
       if (file.existsSync()) {
         var fileContents = await file.readAsString();
         dataList = jsonDecode(fileContents) as List<dynamic>;
       }
-      // 내가 방금 쓴 글을 추가해야함
       dataList.add(data);
       var jsondata = jsonEncode(dataList); // 변수 map을 다시 json으로 변환
       var res = await file.writeAsString(jsondata);

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_diary/add_page.dart';
+import 'package:flutter_application_diary/add_page.dart';
 import 'package:path_provider/path_provider.dart';
 
 class MainPage extends StatefulWidget {
@@ -38,7 +38,6 @@ class _MainState extends State<Main> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getPath().then((value) => {showList()});
   }
@@ -48,6 +47,33 @@ class _MainState extends State<Main> {
     if (directory != null) {
       filePath = '${directory!.path}/$fileName'; // 경로/경로/diary.json
       print(filePath);
+    }
+  }
+
+  Future<void> deleteFile() async {
+    try {
+      var file = File(filePath);
+      var result = file.delete().then((value) => (value) {
+            print(value);
+            showList();
+          });
+      print(result.toString());
+    } catch (e) {
+      print('delet error');
+    }
+  }
+
+  Future<void> deleteContents(int index) async {
+    try {
+      File file = File(filePath);
+      var fileContents = await file.readAsString();
+      var dataList = jsonDecode(fileContents) as List<dynamic>;
+      dataList.removeAt(index);
+      var jsondata = jsonEncode(dataList);
+      var res = await file.writeAsString(jsondata);
+      showList();
+    } catch (e) {
+      print('delete contents error');
     }
   }
 
@@ -68,7 +94,12 @@ class _MainState extends State<Main> {
                     return ListTile(
                       title: Text(data['title']),
                       subtitle: Text(data['contents']),
-                      trailing: const Icon(Icons.delete),
+                      trailing: IconButton(
+                        onPressed: () {
+                          deleteContents(index);
+                        },
+                        icon: const Icon(Icons.delete),
+                      ),
                     );
                   },
                   separatorBuilder: (context, index) => const Divider(),
@@ -79,6 +110,10 @@ class _MainState extends State<Main> {
               }
             },
           );
+        });
+      } else {
+        setState(() {
+          myList = const Text('파일이 없습니다.');
         });
       }
     } catch (e) {
@@ -95,11 +130,22 @@ class _MainState extends State<Main> {
             const SizedBox(
               height: 60,
             ),
-            ElevatedButton(
-              onPressed: () {
-                showList();
-              },
-              child: const Text('조회'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    showList();
+                  },
+                  child: const Text('조회'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    deleteFile();
+                  },
+                  child: const Text('삭제'),
+                ),
+              ],
             ),
             Expanded(
               child: myList,
@@ -119,7 +165,7 @@ class _MainState extends State<Main> {
           );
           if (result == 'ok') {}
         },
-        child: const Icon(Icons.pest_control_outlined),
+        child: const Icon(Icons.apple),
       ),
     );
   }
