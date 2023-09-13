@@ -88,6 +88,9 @@ class _MainState extends State<Main> {
               if (snapshot.hasData) {
                 var d = snapshot.data; // String - [{'title' : 'asd'}....]
                 var dataList = jsonDecode(d!) as List<dynamic>;
+                if (dataList.isEmpty) {
+                  return const Text('내용이 없습니다');
+                }
                 return ListView.separated(
                   itemBuilder: (context, index) {
                     var data = dataList[index] as Map<String, dynamic>;
