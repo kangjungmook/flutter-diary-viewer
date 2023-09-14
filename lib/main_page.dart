@@ -35,6 +35,7 @@ class _MainState extends State<Main> {
   String fileName = 'diary.json';
   String filePath = '';
   dynamic myList = const Text('준비');
+  DateTime date = DateTime.now(); // 현재 날짜를 초기 날짜로 설정
 
   @override
   void initState() {
@@ -141,6 +142,23 @@ class _MainState extends State<Main> {
                     showList();
                   },
                   child: const Text('조회'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final selectedDate = await showDatePicker(
+                      context: context,
+                      initialDate: date,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                      initialEntryMode: DatePickerEntryMode.calendarOnly,
+                    );
+                    if (selectedDate != null) {
+                      setState(() {
+                        date = selectedDate;
+                      });
+                    }
+                  },
+                  child: const Text('날짜 조회'),
                 ),
                 ElevatedButton(
                   onPressed: () {
