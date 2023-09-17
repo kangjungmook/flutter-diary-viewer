@@ -1,52 +1,37 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_application_diary/add_page.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_application_diary/add_page.dart';
+
+void main() {
+  runApp(const MainPage());
+}
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  const MainPage({Key? key});
 
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Main(),
-    );
-  }
-}
-
-class Main extends StatefulWidget {
-  const Main({
-    super.key,
-  });
-
-  @override
-  State<Main> createState() => _MainState();
-}
-
-class _MainState extends State<Main> {
   Directory? directory;
   String fileName = 'diary.json';
   String filePath = '';
   dynamic myList = const Text('준비');
-  DateTime date = DateTime.now(); // 현재 날짜를 초기 날짜로 설정
+  DateTime selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    getPath().then((value) => {showList()});
+    getPath().then((value) => showList());
   }
 
   Future<void> getPath() async {
-    directory = await getApplicationSupportDirectory(); // 모든 플랫폼에서 사용 가능하기 때문에
+    directory = await getApplicationSupportDirectory();
     if (directory != null) {
-      filePath = '${directory!.path}/$fileName'; // 경로/경로/diary.json
+      filePath = '${directory!.path}/$fileName';
       print(filePath);
     }
   }
@@ -54,13 +39,13 @@ class _MainState extends State<Main> {
   Future<void> deleteFile() async {
     try {
       var file = File(filePath);
-      var result = file.delete().then((value) => (value) {
-            print(value);
-            showList();
-          });
+      var result = file.delete().then((value) {
+        print(value);
+        showList();
+      });
       print(result.toString());
     } catch (e) {
-      print('delet error');
+      print('delete error');
     }
   }
 
@@ -87,14 +72,23 @@ class _MainState extends State<Main> {
             future: file.readAsString(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                var d = snapshot.data; // String - [{'title' : 'asd'}....]
+                var d = snapshot.data;
                 var dataList = jsonDecode(d!) as List<dynamic>;
                 if (dataList.isEmpty) {
                   return const Text('내용이 없습니다');
                 }
+                var filteredList = dataList.where((item) {
+                  var itemDate = DateTime.parse(item['date']);
+                  return itemDate.year == selectedDate.year &&
+                      itemDate.month == selectedDate.month &&
+                      itemDate.day == selectedDate.day;
+                }).toList();
+                if (filteredList.isEmpty) {
+                  return const Text('해당 날짜에 내용이 없습니다');
+                }
                 return ListView.separated(
                   itemBuilder: (context, index) {
-                    var data = dataList[index] as Map<String, dynamic>;
+                    var data = filteredList[index] as Map<String, dynamic>;
                     return ListTile(
                       title: Text(data['title']),
                       subtitle: Text(data['contents']),
@@ -107,7 +101,7 @@ class _MainState extends State<Main> {
                     );
                   },
                   separatorBuilder: (context, index) => const Divider(),
-                  itemCount: dataList.length,
+                  itemCount: filteredList.length,
                 );
               } else {
                 return const CircularProgressIndicator();
@@ -128,34 +122,33 @@ class _MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('일기장 앱'),
+        centerTitle: true,
+      ),
       body: Center(
         child: Column(
           children: [
             const SizedBox(
-              height: 60,
+              height: 20,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    showList();
-                  },
-                  child: const Text('조회'),
-                ),
-                ElevatedButton(
                   onPressed: () async {
-                    final selectedDate = await showDatePicker(
+                    final newDate = await showDatePicker(
                       context: context,
-                      initialDate: date,
+                      initialDate: selectedDate,
                       firstDate: DateTime(2000),
                       lastDate: DateTime.now(),
                       initialEntryMode: DatePickerEntryMode.calendarOnly,
                     );
-                    if (selectedDate != null) {
+                    if (newDate != null) {
                       setState(() {
-                        date = selectedDate;
+                        selectedDate = newDate;
                       });
+                      showList();
                     }
                   },
                   child: const Text('날짜 조회'),
@@ -164,7 +157,7 @@ class _MainState extends State<Main> {
                   onPressed: () {
                     deleteFile();
                   },
-                  child: const Text('삭제'),
+                  child: const Text('전부 삭제'),
                 ),
               ],
             ),
@@ -184,9 +177,11 @@ class _MainState extends State<Main> {
               ),
             ),
           );
-          if (result == 'ok') {}
+          if (result == 'ok') {
+            showList();
+          }
         },
-        child: const Icon(Icons.apple),
+        child: const Icon(Icons.add),
       ),
     );
   }

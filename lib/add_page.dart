@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 class AddPage extends StatefulWidget {
-  String filePath;
-  AddPage({super.key, required this.filePath});
+  final String filePath;
+
+  AddPage({Key? key, required this.filePath});
 
   @override
   State<AddPage> createState() => _AddPageState();
@@ -27,10 +27,11 @@ class _AddPageState extends State<AddPage> {
   Future<bool> fileSave() async {
     try {
       File file = File(filePath);
-      List<dynamic> dataList = []; // 기존의 파일데이터를 읽어와서 저장할 목적
+      List<dynamic> dataList = [];
       var data = {
         'title': controllers[0].text,
         'contents': controllers[1].text,
+        'date': DateTime.now().toIso8601String(), // 현재 날짜를 추가
       };
 
       if (file.existsSync()) {
@@ -38,7 +39,7 @@ class _AddPageState extends State<AddPage> {
         dataList = jsonDecode(fileContents) as List<dynamic>;
       }
       dataList.add(data);
-      var jsondata = jsonEncode(dataList); // 변수 map을 다시 json으로 변환
+      var jsondata = jsonEncode(dataList);
       var res = await file.writeAsString(jsondata);
       return true;
     } catch (e) {
@@ -63,7 +64,7 @@ class _AddPageState extends State<AddPage> {
                 controller: controllers[0],
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  label: Text('제목'),
+                  labelText: '제목',
                 ),
               ),
               const SizedBox(
@@ -76,17 +77,17 @@ class _AddPageState extends State<AddPage> {
                   maxLines: 10,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    label: Text('내용'),
+                    labelText: '내용',
                   ),
                 ),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  var result = await fileSave(); // 저장이 잘 되었다면 T, 안되었다면 F
+                  var result = await fileSave();
                   if (result == true) {
                     Navigator.pop(context, 'ok');
                   } else {
-                    print('저장실패입니다.');
+                    print('저장 실패입니다.');
                   }
                 },
                 child: const Text('저장'),
